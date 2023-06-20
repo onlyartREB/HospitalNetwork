@@ -37,10 +37,12 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'rampup.App'
+    mainClass = 'rampup.Hospital'
 }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+apply plugin: 'application'
+
