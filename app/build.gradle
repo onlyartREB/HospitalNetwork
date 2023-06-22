@@ -37,7 +37,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'rampup.Hospital'
+    mainClass = 'rampup.Main'
 }
 
 tasks.named('test') {

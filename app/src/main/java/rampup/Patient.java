@@ -11,5 +11,7 @@ public class Patient extends Agent{
     System.out.println("Patient: " +getAID().getName());
 }
 
-
+	protected void takeDown() {
+        System.out.println(getAID().getName() + " : Terminating.");
+}
 }
