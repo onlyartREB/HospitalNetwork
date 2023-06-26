@@ -17,7 +17,7 @@ public class Hospital extends Agent {
     
 	int durée; 
 	private int capacity = 20;
-	public int activePatients = 0; // Number of currently active patients
+	private int activePatients = 0; // Number of currently active patients
 	protected void setup() {
 	
 	System.out.println("Hospital  : "+getLocalName());
@@ -29,7 +29,10 @@ public class Hospital extends Agent {
     ContainerController container = getContainerController();
 	addBehaviour(new Gestion(this, 1000));
 	}
-	
+	   public void decrementActivePatients() {
+	        activePatients--;
+	    
+}
 	public class Gestion extends TickerBehaviour { 
 	public Gestion(Agent ag, int durée){
 	super(ag, durée);
@@ -48,21 +51,18 @@ public class Hospital extends Agent {
 	            if (activePatients < capacity) {
 	                ContainerController container = getContainerController();
 	                String agentName = "Patient" + System.currentTimeMillis()+ i;;
-	                AgentController patient= container.createNewAgent(agentName, "rampup.Patient", null);
+	                AgentController patient = container.createNewAgent(agentName, "rampup.Patient", new Object[]{Hospital.this, agentName});
 	                patient.start();
 	                activePatients++; // Increment the counter
 	                System.out.println("Creating " + i);
 	            } else {
 	                System.out.println("Hospital reached its capacity. Cannot create more patients.");
 	                break;
-	            }
+	            }	
 	    }} catch (StaleProxyException e) {
 	        e.printStackTrace();
 	    }
 	}
 	}
-	   public void decrementActivePatients() {
-	        activePatients--;
-	    }
 
 }

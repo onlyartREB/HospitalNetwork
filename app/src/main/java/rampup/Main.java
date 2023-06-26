@@ -19,7 +19,6 @@ public class Main {
     try {
         // Create the main container
         AgentContainer mainContainer = runtime.createMainContainer(profile);
-
         // Start the TickerAgent
         AgentController tickerAgentController = mainContainer.createNewAgent("Hospital ", Hospital.class.getName(), null);
         tickerAgentController.start();
