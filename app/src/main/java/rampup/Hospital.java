@@ -17,7 +17,7 @@ public class Hospital extends Agent {
     
 	int durée; 
 	private int capacity = 20;
-	private int activePatients = 0; // Number of currently active patients
+	public int activePatients = 0; // Number of currently active patients
 	protected void setup() {
 	
 	System.out.println("Hospital  : "+getLocalName());
@@ -48,7 +48,7 @@ public class Hospital extends Agent {
 	            if (activePatients < capacity) {
 	                ContainerController container = getContainerController();
 	                String agentName = "Patient" + System.currentTimeMillis()+ i;;
-	                AgentController patient = container.createNewAgent(agentName, "rampup.Patient", new Object[]{Hospital.this});
+	                AgentController patient= container.createNewAgent(agentName, "rampup.Patient", null);
 	                patient.start();
 	                activePatients++; // Increment the counter
 	                System.out.println("Creating " + i);
@@ -64,31 +64,5 @@ public class Hospital extends Agent {
 	   public void decrementActivePatients() {
 	        activePatients--;
 	    }
-	/*int durée; 
-	protected void setup() {
-	System.out.println("Je suis l'hopital : "+getLocalName());
-	Object[] args = getArguments() ;
-	if (args != null) {
-	durée = Integer.parseInt(args[0].toString());
-	addBehaviour(new Addition(this, durée));
-	}
-	}
-	public class Addition extends TickerBehaviour { //comportement Addition
-	public Addition(Agent ag, int durée){
-	super(ag, durée);
-	}
-	public void onTick(){
-		for(int i=1;i<=5;i++) {
-			PoissonDistribution D1 = new PoissonDistribution(15);
-			int value = D1.sample();
-			System.out.println("Hopital"+getLocalName()+":j’ai généré :"+value+" patient");
-	}
-	}
-	}
-	public void setup()
-	    { 
-	        System.out.println("Hospital: " +getAID().getName());
-	    }
-	*/
 
 }

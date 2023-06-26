@@ -11,7 +11,6 @@ public class Main {
 	System.out.println("we are starting");
     // Get the JADE runtime instance
     Runtime runtime = Runtime.instance();
-
     // Create a profile with the desired settings
     Profile profile = new ProfileImpl();
     profile.setParameter(Profile.MAIN_HOST, "localhost");
