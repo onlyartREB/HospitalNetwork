@@ -1,6 +1,7 @@
 package rampup;
 
 import jade.core.Profile;
+
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentContainer;
@@ -26,7 +27,7 @@ public class Main {
         // Wait for user input to terminate the program
         System.out.println("Press enter to terminate...");
         System.in.read();
-
+            
         // Terminate the agents and the JADE platform
         tickerAgentController.kill();
         runtime.shutDown();

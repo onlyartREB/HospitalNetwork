@@ -13,7 +13,7 @@ public class Patient extends Agent {
         if (args != null && args.length > 0) {
             hospital = (Hospital) args[0]; // Set the reference to the creating Hospital agent
         }
-
+        
         System.out.println("Patient: " + getLocalName());
 
         // Set the lifelos randomly between 1 and 10
@@ -24,10 +24,10 @@ public class Patient extends Agent {
     private class LifeBehaviour extends CyclicBehaviour {
         public void action() {
             if (lifelos > 0) {
-                System.out.println("Patient " + getLocalName() + " - Lifelos: " + lifelos);
+                System.out.println("Patient " + getLocalName() + " - LOS: " + lifelos);
                 lifelos--;
             } else {
-                System.out.println("Patient " + getLocalName() + " - Lifelos over. Terminating...");
+                System.out.println("Patient " + getLocalName() + " - LOS over. Terminating...");
                 if (hospital != null) {
                     hospital.decrementActivePatients();
                 }

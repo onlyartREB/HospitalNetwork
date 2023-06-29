@@ -18,6 +18,8 @@ public class Hospital extends Agent {
 	int durée; 
 	private int capacity = 20;
 	private int activePatients = 0; // Number of currently active patients
+	int lambda; 
+	
 	protected void setup() {
 	
 	System.out.println("Hospital  : "+getLocalName());
@@ -31,7 +33,7 @@ public class Hospital extends Agent {
 	}
 	   public void decrementActivePatients() {
 	        activePatients--;
-	    
+	     
 }
 	public class Gestion extends TickerBehaviour { 
 	public Gestion(Agent ag, int durée){
@@ -39,7 +41,12 @@ public class Hospital extends Agent {
 	}
 	public void onTick() {
 	    System.out.println("Gestion behavior executing...");
+	    
+	    
 	    double lambda = 10; // mean
+	    
+	    
+	    
 	    PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
 	    int randomNumber = poissonDistribution.sample();
 
@@ -54,7 +61,7 @@ public class Hospital extends Agent {
 	                AgentController patient = container.createNewAgent(agentName, "rampup.Patient", new Object[]{Hospital.this, agentName});
 	                patient.start();
 	                activePatients++; // Increment the counter
-	                System.out.println("Creating " + i);
+	                System.out.println("Bed " + i);
 	            } else {
 	                System.out.println("Hospital reached its capacity. Cannot create more patients.");
 	                break;
