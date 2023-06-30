@@ -17,7 +17,7 @@ public class Hospital extends Agent {
 	int duree;
 	private int capacity = 20; // it can be a function but I will let it like that
 	private int activePatients = 0; // Number of currently active patients
-	int lambda;
+	double lambda = 10; // mean
 	PoissonDistribution poissonDistribution;
 
 	protected void setup() {
@@ -49,7 +49,6 @@ public class Hospital extends Agent {
 		public void onTick() {
 			System.out.println("Gestion behavior executing...");
 
-			double lambda = 10; // mean
 			// It won't be there - in patients instead
 			// it can be created just once !
 			// every
