@@ -17,5 +17,5 @@ public class Zone {
     	
     	return mean;
     	
-    }
+    }//We're going to try witih one hospital
 }
