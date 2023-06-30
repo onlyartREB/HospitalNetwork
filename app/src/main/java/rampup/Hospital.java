@@ -25,7 +25,7 @@ public class Hospital extends Agent {
 		System.out.println("Hospital  : " + getLocalName());
 
 		/*
-		 * Object[] args = getArguments() ; if (args != null) { durée =
+		 * Object[] args = getArguments() ; if (args != null) { duree =
 		 * Integer.parseInt(args[0].toString());
 		 */
 		ContainerController container = getContainerController();
