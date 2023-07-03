@@ -1,4 +1,4 @@
-package rampup;
+/*package rampup;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,4 +18,4 @@ public class Zone {
     	return mean;
     	
     }//We're going to try witih one hospital
-}
+}*/

@@ -1,3 +1,4 @@
+/*
 package rampup;
 
 import jade.core.Agent;
@@ -12,7 +13,7 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 
-public class Hospital extends Agent {
+public class PatientGeneratorTick  extends Agent {
 
 	int duree;
 	private int capacity = 20; // it can be a function but I will let it like that
@@ -22,12 +23,12 @@ public class Hospital extends Agent {
 
 	protected void setup() {
 
-		System.out.println("Hospital  : " + getLocalName());
+		System.out.println("PatientGeneratorTick  : " + getLocalName());
 
-		/*
+		
 		 * Object[] args = getArguments() ; if (args != null) { duree =
 		 * Integer.parseInt(args[0].toString());
-		 */
+		 
 		ContainerController container = getContainerController();
 		poissonDistribution = new PoissonDistribution(lambda);
 		// Create a new class patientGnerator that will have poisson and generate
@@ -36,46 +37,37 @@ public class Hospital extends Agent {
 
 	}
 
-	public void decrementActivePatients() {
-		activePatients--;
-
-	}
 
 	public class Gestion extends TickerBehaviour {
 		public Gestion(Agent ag, int duree) {
 			super(ag, duree);
 		}
-
+		
 		public void onTick() {
-			System.out.println("Gestion behavior executing...");
-
-			// It won't be there - in patients instead
-			// it can be created just once !
-
+			System.out.println("Gestion behavior to create is executing...");
+			
 			int randomNumber = poissonDistribution.sample();
 
-			int patientsToCreate = Math.min(randomNumber, capacity - activePatients); // Consider the remaining capacity
 
 			try {
-				System.out.println("Welcome to the " + patientsToCreate + " Patients");
-				for (int i = 1; i <= patientsToCreate; i++) {
-					if (activePatients < capacity) {
+				System.out.println("Welcome to the " + randomNumber + " Patients");
+				for (int i = 1; i <= randomNumber; i++) {
 						ContainerController container = getContainerController();
 						String agentName = "Patient" + System.currentTimeMillis() + i;
 						;
 						AgentController patient = container.createNewAgent(agentName, "rampup.Patient",
-								new Object[] { Hospital.this, agentName });
+								new Object[] { PatientGeneratorTick.this, agentName });
 						patient.start();
 						activePatients++; // Increment the counter
-						System.out.println("Bed " + i);
-					} else {
-						System.out.println("Hospital reached its capacity. Cannot create more patients.");
+						System.out.println("Patient " + i);
 						break;
 					}
-				}
+				
 			} catch (StaleProxyException e) {
 				e.printStackTrace();
 			}
 		}
 	}
+
 }
+*/

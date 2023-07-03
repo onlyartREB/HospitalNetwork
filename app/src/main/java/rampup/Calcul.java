@@ -1,3 +1,4 @@
+/*
 package rampup;
 
 public class Calcul {
@@ -36,4 +37,4 @@ public int lambda(int time, Hospital hopital) {
 	
 }
 
-}
+}*/
