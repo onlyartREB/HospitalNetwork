@@ -10,7 +10,7 @@ public class Patient extends Agent {
 	/*
 	 * inform patient patients the available hospitals the next complex step is to
 	 * make another hospital at this point patient will make the decision, and the
-	 * decision could be random one you have this than you can start thinking about
+	 * decision could be random once you have this than you can start thinking about
 	 * more complex things, make the patients informed about availability,
 	 * positionning hospitals and calculte the distance and choose the closest
 	 */

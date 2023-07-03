@@ -10,11 +10,11 @@ import jade.wrapper.AgentController;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 
-public class patientGeneratorOpt {
+public class patientGeneratorOptFnct {
 	// ContainerController container = getContainerController();
-	public static void main(String[] args) {
-
-		double lambda = 10; // mean
+		
+	    //I can use this function by passing a parametre for each lambda 
+	public void Generate(double lambda) {	
 		PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
 		int randomNumber = poissonDistribution.sample();
 		try {
@@ -35,3 +35,4 @@ public class patientGeneratorOpt {
 		}
 	}
 }
+ 

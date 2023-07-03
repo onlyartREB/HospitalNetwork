@@ -18,6 +18,7 @@ public class Hospital extends Agent {
 	private int capacity = 20; // it can be a function but I will let it like that
 	private int activePatients = 0; // Number of currently active patients
 	double lambda = 10; // mean
+
 	PoissonDistribution poissonDistribution;
 
 	protected void setup() {
