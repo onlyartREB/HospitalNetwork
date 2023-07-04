@@ -22,10 +22,15 @@ public class Main {
 			AgentContainer mainContainer = runtime.createMainContainer(profile);
 			// Start the TickerAgent
 			// Creating Hospital
-			AgentController tickerAgentController = mainContainer.createNewAgent("Hospital ", Hospital.class.getName(),
+			AgentController tickerAgentController = mainContainer.createNewAgent("Hospital 1", Hospital.class.getName(),
 					null);
+			AgentController tickerAgentController2 = mainContainer.createNewAgent("Hospital 2", Hospital.class.getName(),null);
+
 			// Hospital is ready
 			tickerAgentController.start();
+			tickerAgentController2.start();
+
+			
 			// Creation patients
 		    //How much do you expect the mean would be ? 
 			
@@ -37,6 +42,8 @@ public class Main {
 
 			// Terminate the agents and the JADE platform
 			tickerAgentController.kill();
+			tickerAgentController2.kill();
+
 			runtime.shutDown();
 
 		} catch (Exception e) {
