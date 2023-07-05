@@ -2,6 +2,8 @@ package rampup;
 
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
+import jade.lang.acl.ACLMessage;
+
 import org.apache.commons.math3.distribution.PoissonDistribution;
 
 import jade.wrapper.AgentContainer;
@@ -11,6 +13,8 @@ import jade.wrapper.StaleProxyException;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Hospital extends Agent {
 
@@ -18,6 +22,7 @@ public class Hospital extends Agent {
 	private int capacity = 20; // it can be a function but I will let it like that
 	private int activePatients = 0; // Number of currently active patients
 	double lambda = 10; // mean
+	private List<String> patientList = new ArrayList<>();
 
 	PoissonDistribution poissonDistribution;
 
@@ -50,33 +55,32 @@ public class Hospital extends Agent {
 		public void onTick() {
 			System.out.println("Gestion behavior executing...");
 
-			// It won't be there - in patients instead
-			// it can be created just once !
+			System.out.println("Welcome to our Patients");
 
-			int randomNumber = poissonDistribution.sample();
+			patientGeneratorOptFnct generator = new patientGeneratorOptFnct();
+			List<String> generatedPatients = generator.generate(lambda);
+			patientList.addAll(generatedPatients);
+			System.out.println("Welcome to our Patients");
 
-			int patientsToCreate = Math.min(randomNumber, capacity - activePatients); // Consider the remaining capacity
+			// Retrieve patients from the Patient generator
+			// For example, you can use a shared data structure or store the patients in a
+			// list
 
-			try {
-				System.out.println("Welcome to the " + patientsToCreate + " Patients");
-				for (int i = 1; i <= patientsToCreate; i++) {
-					if (activePatients < capacity) {
-						ContainerController container = getContainerController();
-						String agentName = "Patient" + System.currentTimeMillis() + i;
-						;
-						AgentController patient = container.createNewAgent(agentName, "rampup.Patient",
-								new Object[] { Hospital.this, agentName });
-						patient.start();
-						activePatients++; // Increment the counter
-						System.out.println("Bed " + i);
-					} else {
-						System.out.println("Hospital reached its capacity. Cannot create more patients.");
-						break;
-					}
-				}
-			} catch (StaleProxyException e) {
-				e.printStackTrace();
-			}
+			// Send patients to the appropriate functionality in the Hospital agent
+			// You can call a method or behavior to handle the patients
+
+			// ...
+
+			/*
+			 * for (int i = 1; i <= patientsToCreate; i++) { if (activePatients < capacity)
+			 * { ContainerController container = getContainerController(); String agentName
+			 * = "Patient" + System.currentTimeMillis() + i; ; AgentController patient =
+			 * container.createNewAgent(agentName, "rampup.Patient", new Object[] {
+			 * Hospital.this, agentName }); patient.start(); activePatients++; // Increment
+			 * the counter System.out.println("Bed " + i); } else { System.out.
+			 * println("Hospital reached its capacity. Cannot create more patients.");
+			 * break; } }
+			 */
 		}
 	}
 }

@@ -2,6 +2,7 @@ package rampup;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+//import java.lang.Math;
 
 public class Patient extends Agent {
 	// Steps
@@ -24,8 +25,8 @@ public class Patient extends Agent {
 		}
 
 		System.out.println("Patient: " + getLocalName());
-
 		// Set the lifelos randomly between 1 and 10
+
 		lifelos = (int) (Math.random() * 10) + 1;
 		addBehaviour(new LifeBehaviour());
 	}
