@@ -15,6 +15,8 @@ import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import java.util.ArrayList;
 import java.util.List;
+import jade.core.behaviours.TickerBehaviour;
+import jade.lang.acl.ACLMessage;
 
 public class Hospital extends Agent {
 
@@ -24,7 +26,6 @@ public class Hospital extends Agent {
 	double lambda = 10; // mean
 	private List<String> patientList = new ArrayList<>();
 
-	PoissonDistribution poissonDistribution;
 
 	protected void setup() {
 
@@ -35,13 +36,12 @@ public class Hospital extends Agent {
 		 * Integer.parseInt(args[0].toString());
 		 */
 		ContainerController container = getContainerController();
-		poissonDistribution = new PoissonDistribution(lambda);
 		// Create a new class patientGnerator that will have poisson and generate
 		// patients based the lambda
 		addBehaviour(new Gestion(this, 1000));
 
 	}
-
+//decrement Actual number of patients 
 	public void decrementActivePatients() {
 		activePatients--;
 
@@ -50,37 +50,37 @@ public class Hospital extends Agent {
 	public class Gestion extends TickerBehaviour {
 		public Gestion(Agent ag, int duree) {
 			super(ag, duree);
-		}
+		}	
 
-		public void onTick() {
-			System.out.println("Gestion behavior executing...");
-
-			System.out.println("Welcome to our Patients");
-
-			patientGeneratorOptFnct generator = new patientGeneratorOptFnct();
-			List<String> generatedPatients = generator.generate(lambda);
-			patientList.addAll(generatedPatients);
-			System.out.println("Welcome to our Patients");
-
-			// Retrieve patients from the Patient generator
-			// For example, you can use a shared data structure or store the patients in a
-			// list
-
-			// Send patients to the appropriate functionality in the Hospital agent
-			// You can call a method or behavior to handle the patients
-
-			// ...
-
-			/*
-			 * for (int i = 1; i <= patientsToCreate; i++) { if (activePatients < capacity)
-			 * { ContainerController container = getContainerController(); String agentName
-			 * = "Patient" + System.currentTimeMillis() + i; ; AgentController patient =
-			 * container.createNewAgent(agentName, "rampup.Patient", new Object[] {
-			 * Hospital.this, agentName }); patient.start(); activePatients++; // Increment
-			 * the counter System.out.println("Bed " + i); } else { System.out.
-			 * println("Hospital reached its capacity. Cannot create more patients.");
-			 * break; } }
-			 */
+		protected void onTick() {
+			ACLMessage message = receive(); // Recevoir le prochain message
+			while (message != null) {
+				// Msg processing
+				String patientAgentName = message.getContent(); // Récupérer le nom de l'agent patient du contenu du
+																// message
+				System.out.println("Received patient: " + patientAgentName);
+                
+				message = receive(); // Recevoir le prochain message
+			}
 		}
 	}
+	// Retrieve patients from the Patient generator
+	// For example, you can use a shared data structure or store the patients in a
+	// list
+
+	// Send patients to the appropriate functionality in the Hospital agent
+	// You can call a method or behavior to handle the patients
+
+	// ...
+
+	/*
+	 * for (int i = 1; i <= patientsToCreate; i++) { if (activePatients < capacity)
+	 * { ContainerController container = getContainerController(); String agentName
+	 * = "Patient" + System.currentTimeMillis() + i; ; AgentController patient =
+	 * container.createNewAgent(agentName, "rampup.Patient", new Object[] {
+	 * Hospital.this, agentName }); patient.start(); activePatients++; // Increment
+	 * the counter System.out.println("Bed " + i); } else { System.out.
+	 * println("Hospital reached its capacity. Cannot create more patients.");
+	 * break; } }
+	 */
 }

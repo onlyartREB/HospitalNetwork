@@ -11,7 +11,6 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 
 public class patientGeneratorOpt {
-	// ContainerController container = getContainerController();
 	public static void main(String[] args) {
 
 		double lambda = 10; // mean
@@ -28,8 +27,9 @@ public class patientGeneratorOpt {
 				String agentName = "Patient" + System.currentTimeMillis() + i;
 				AgentController patient = container.createNewAgent(agentName, "rampup.Patient", null);
 				patient.start();
+				System.out.println("Patient"+ patient +" has been created");
 			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
