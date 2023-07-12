@@ -5,7 +5,6 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.AID; 
 //import java.lang.Math;
 import jade.lang.acl.ACLMessage;
-import jade.core.AID;
 public class Patient extends Agent {
 	// Steps
 	// The Patient will decide which hospital
@@ -35,17 +34,14 @@ public class Patient extends Agent {
 
 	}
 	private void chooseHospital() {
-		ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-		message.setContent(getLocalName()); // Set the content as the patient's name
-		message.addReceiver(hospital.getAID());
-		send(message);
+	    if (hospital != null) {
+	        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+	        message.setContent(getLocalName()); // Set the content as the patient's name
+	        message.addReceiver(hospital.getAID());
+	        send(message);
+	    }
 	}
-    /*private void chooseHospital() {
-        //ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-        message.setContent(getLocalName()); // Set the content as the patient's name
-        message.addReceiver(hospital.getAID());
-        send(message);
-    }*/
+
 
 	private class LifeBehaviour extends CyclicBehaviour {
 		public void action() {

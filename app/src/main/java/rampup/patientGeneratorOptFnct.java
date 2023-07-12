@@ -1,55 +1,37 @@
 package rampup;
 
-import java.util.List;
-
+import jade.core.Agent;
+import jade.core.AID;
+import jade.lang.acl.ACLMessage;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 
-import jade.core.Agent;
-import jade.wrapper.ContainerController;
-import jade.core.Runtime;
-import jade.wrapper.AgentContainer;
-import jade.wrapper.AgentController;
-import jade.core.Profile;
-import jade.core.ProfileImpl;
+public class patientGeneratorOptFnct extends Agent {
 
+	protected void setup() {
+		System.out.println("Patient Generator: " + getLocalName());
+		generatePatients();
+	}
 
-
-import jade.core.AID;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.lang.acl.ACLMessage;
-public class patientGeneratorOptFnct extends Agent{
-	// ContainerController container = getContainerController();
-		
-	    //I can use this function by passing a parametre for each lambda 
-	public List<String> Generate(double lambda) {	
-		PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
-		int randomNumber = poissonDistribution.sample(); // let it like that we will find a way to ditribute everyday a random number from this distribution
-		try {
-			// Instantiate the JADE runtime
-			Runtime rt = Runtime.instance();
-			// Create the main container for the agents
-			Profile profile = new ProfileImpl();
-			ContainerController container = rt.createMainContainer(profile);
-            System.out.println(randomNumber);
-            System.out.println("Begin to create ");
-			for (int i = 1; i <= randomNumber; i++) {
-				String agentName = "Patient" + System.currentTimeMillis() + i;
-				AgentController patient = container.createNewAgent(agentName, "rampup.Patient", null);
-				patient.start();
-				
-				ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-				message.addReceiver(new AID("Hospital", AID.ISLOCALNAME));
-				message.setContent(agentName); // Envoyez le nom de l'agent patient dans le contenu du message
-				send(message);
-				
-				
-				
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+	/*
+	 * int lambda = 10; PoissonDistribution poissonDistribution = new
+	 * PoissonDistribution(lambda); int randomNumber = poissonDistribution.sample();
+	 */
+	private void generatePatients() {
+		int patientNumber = 10;
+		for (int i = 1; i <= patientNumber; i++) {
+			String patientAgentName = "Patient" + System.currentTimeMillis() + i;
+			int hospitalIndex = (int) (Math.random() * 2); // Choose a random index for the hospital
+			String hospitalAgentName = "Hospital" + hospitalIndex; // Assume the hospitals are named "Hospital0" and
+																	// "Hospital1"
+			sendPatientToHospital(patientAgentName, hospitalAgentName);
+			System.out.println("Patient " + i + " has been sent to " + hospitalAgentName);
 		}
-		return null;
+	}
+
+	private void sendPatientToHospital(String patientAgentName, String hospitalAgentName) {
+		ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+		message.setContent(patientAgentName); // Set the content as the patient's name
+		message.addReceiver(new AID(hospitalAgentName, AID.ISLOCALNAME));
+		send(message);
 	}
 }
- 
