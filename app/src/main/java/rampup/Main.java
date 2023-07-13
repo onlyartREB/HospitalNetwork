@@ -30,7 +30,7 @@ public class Main {
             AgentController hospitalController2 = mainContainer.createNewAgent("Hospital2",
                     Hospital.class.getName(), null);
             hospitalController2.start();
-
+        
             // Create the patient generator agent
             AgentController patientGeneratorController = mainContainer.createNewAgent("PatientGenerator",
                     patientGeneratorOptFnct.class.getName(), null);

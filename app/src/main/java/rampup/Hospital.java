@@ -12,6 +12,7 @@ public class Hospital extends Agent {
     private int activePatients = 0; // Number of currently active patients
     private List<List<String>> patientLists = new ArrayList<>(); // Separate patient lists for each hospital
     private List<String> patientList = new ArrayList<>();
+    private List<String> receivedPatients = new ArrayList<>(); // Temporary list to store received patients
 
     protected void setup() {
         System.out.println("Hospital: " + getLocalName());
@@ -46,11 +47,9 @@ public class Hospital extends Agent {
             while (message != null) {
                 String patientAgentName = message.getContent();
                 System.out.println("Received patient: " + patientAgentName);
-                int hospitalIndex = Integer.parseInt(getLocalName().replaceAll("\\D+", "")); // Extract the hospital index from the agent name
-                patientLists.get(hospitalIndex).add(patientAgentName); // Add the patient to the appropriate hospital's list
+                receivedPatients.add(patientAgentName); // Store the received patient in the temporary list
                 message = receive();
             }
-
             if (activePatients < capacity && !patientList.isEmpty()) {
                 String patientAgentName = patientList.remove(0);
                 ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
@@ -58,6 +57,14 @@ public class Hospital extends Agent {
                 reply.addReceiver(getAID());
                 send(reply);
                 activePatients++;
+                printPatients();
+                int hospitalIndex = Integer.parseInt(getLocalName().replaceAll("\\D+", ""));
+                for (String receivedPatient : receivedPatients) {
+                    patientLists.get(hospitalIndex).add(receivedPatient);
+                }
+                receivedPatients.clear(); // Clear the temporary list
+
+                // Print the patients accueillis par chaque hôpital
                 printPatients();
 
             }
