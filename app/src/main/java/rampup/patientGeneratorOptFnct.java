@@ -6,12 +6,16 @@ import jade.lang.acl.ACLMessage;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 
 public class patientGeneratorOptFnct extends Agent {
-
+//It's not an agent, loop, look for one hospital choose one randomly 
 	protected void setup() {
 		System.out.println("Patient Generator: " + getLocalName());
 		generatePatients();
+		// Length of stay
 	}
 
+//array list of controllers
+	// whats the number of hospitals ?
+	// Creating...
 	/*
 	 * int lambda = 10; PoissonDistribution poissonDistribution = new
 	 * PoissonDistribution(lambda); int randomNumber = poissonDistribution.sample();
@@ -28,6 +32,7 @@ public class patientGeneratorOptFnct extends Agent {
 		}
 	}
 
+// Just a way to create, it shouldn't do anything except creating
 	private void sendPatientToHospital(String patientAgentName, String hospitalAgentName) {
 		ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
 		message.setContent(patientAgentName); // Set the content as the patient's name
