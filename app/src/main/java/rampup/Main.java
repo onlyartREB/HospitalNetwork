@@ -30,13 +30,17 @@ public class Main {
             AgentController hospitalController2 = mainContainer.createNewAgent("Hospital2",
                     Hospital.class.getName(), null);
             hospitalController2.start();
-        
-            // Create the patient generator agent
-            AgentController patientGeneratorController = mainContainer.createNewAgent("PatientGenerator",
-                    patientGeneratorOptFnct.class.getName(), null);
-            patientGeneratorController.start();
 
             System.out.println("Simulation started.");
+
+            // Wait for a few seconds for hospitals to initialize
+            Thread.sleep(5000);
+
+            // Generate patients and send requests to hospitals
+            double lambda = 2.5; // Adjust lambda value as needed
+
+            patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
+            patientGenerator.generate(lambda);
 
             // Wait for user input to terminate the program
             System.out.println("Press enter to terminate...");
@@ -45,7 +49,6 @@ public class Main {
             // Terminate the agents and the JADE platform
             hospitalController1.kill();
             hospitalController2.kill();
-            patientGeneratorController.kill();
 
             runtime.shutDown();
 
