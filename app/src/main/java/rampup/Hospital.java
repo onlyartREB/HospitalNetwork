@@ -13,14 +13,7 @@ public class Hospital extends Agent {
 	private int activePatients = 0; // Number of currently active patients
     private List<String> patientList; // Just one list to store the names of admitted patients
 
-	
-	/*
-	 * private List<List<String>> patientLists = new ArrayList<>(); // Separate
-	 * patient lists for each hospital private List<String> patientList = new
-	 * ArrayList<>(); private List<String> receivedPatients = new ArrayList<>(); //
-	 * Temporary list to store received patients
-	 */
-// One list
+
 
 	protected void setup() {
 		System.out.println("Hospital: " + getLocalName());
@@ -30,7 +23,7 @@ public class Hospital extends Agent {
 	public void decrementActivePatients() {
 		activePatients--;
 	}
-    public void addPatient(String patientName) {
+    /*public void addPatient(String patientName) {
         if (activePatients < capacity) {
             ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
             message.setContent(patientName);
@@ -41,7 +34,7 @@ public class Hospital extends Agent {
         } else {
             System.out.println("Hospital is at full capacity. Cannot admit patient: " + patientName);
         }
-    }
+    }*/
 
 
 
