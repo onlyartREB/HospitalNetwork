@@ -33,11 +33,13 @@ public class Main {
 
             System.out.println("Simulation started.");
 
-            // Wait for a few seconds for hospitals to initialize
             Thread.sleep(5000);
+            
+            
+            
 
             // Generate patients and send requests to hospitals
-            double lambda = 2.5; // Adjust lambda value as needed
+            double lambda = 2.5; 
 
             patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
             patientGenerator.generate(lambda);
