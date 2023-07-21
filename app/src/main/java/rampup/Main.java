@@ -6,54 +6,68 @@ import jade.core.Runtime;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
-	public static void main(String[] args) {
-		System.out.println("Starting the simulation...");
+    public static void main(String[] args) {
+        System.out.println("Starting the simulation...");
 
-		// Get the JADE runtime instance
-		Runtime runtime = Runtime.instance();
+        // Get the JADE runtime instance
+        Runtime runtime = Runtime.instance();
 
-		// Create a profile with the desired settings
-		Profile profile = new ProfileImpl();
-		profile.setParameter(Profile.MAIN_HOST, "localhost");
-		profile.setParameter(Profile.MAIN_PORT, "1099");
+        // Create a profile with the desired settings
+        Profile profile = new ProfileImpl();
+        profile.setParameter(Profile.MAIN_HOST, "localhost");
+        profile.setParameter(Profile.MAIN_PORT, "1099");
 
-		try {
-			// Create the main container for the agents
-			AgentContainer mainContainer = runtime.createMainContainer(profile);
+        try {
+            // Create the main container for the agents
+            AgentContainer mainContainer = runtime.createMainContainer(profile);
 
-			// Create and start the Hospital agents
-			AgentController hospitalController1 = mainContainer.createNewAgent("Hospital1", Hospital.class.getName(),
-					null);
-			hospitalController1.start();
+            // Create a list to store the hospital names
+            List<String> hospitalNames = new ArrayList<>();
 
-			AgentController hospitalController2 = mainContainer.createNewAgent("Hospital2", Hospital.class.getName(),
-					null);
-			hospitalController2.start();
+            // Create and start the Hospital agents
+            AgentController hospitalController1 = mainContainer.createNewAgent("Hospital1", Hospital.class.getName(),
+                    null);
+            hospitalController1.start();
+            hospitalNames.add("Hospital1");
 
-			System.out.println("Simulation started.");
+            AgentController hospitalController2 = mainContainer.createNewAgent("Hospital2", Hospital.class.getName(),
+                    null);
+            hospitalController2.start();
+            hospitalNames.add("Hospital2");
 
-			Thread.sleep(5000);
+            System.out.println("Simulation started.");
 
-			// Generate patients and send requests to hospitals
-			double lambda = 2.5;
+            Thread.sleep(5000);
 
-			patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
-			patientGenerator.generate(lambda);
+            // Generate patients and pass the hospital names
+            double lambda = 10;
 
-			// Wait for user input to terminate the program
-			System.out.println("Press enter to terminate...");
-			System.in.read();
+            patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
+            patientGenerator.generate(lambda, hospitalNames);
 
-			// Terminate the agents and the JADE platform
-			hospitalController1.kill();
-			hospitalController2.kill();
+            // Wait for user input to terminate the program
+            System.out.println("Press enter to terminate...");
+            System.in.read();
 
-			runtime.shutDown();
+            // Terminate the agents and the JADE platform
+            hospitalController1.kill();
+            hospitalController2.kill();
 
-			System.out.println("Simulation terminated.");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            runtime.shutDown();
+
+            System.out.println("Simulation terminated.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
+
+
+
+
+
+
