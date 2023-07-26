@@ -2,6 +2,7 @@ package rampup;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.core.AID;
 
@@ -9,9 +10,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Patient extends Agent {
-    private int lifelos; // LOS of the patient
     private List<String> hospitalNames; // List of available hospitals in the container
-    private String chosenHospital; // The hospital chosen by the patient
 
     protected void setup() {
         Object[] args = getArguments();
@@ -20,26 +19,24 @@ public class Patient extends Agent {
         }
 
         System.out.println("Patient: " + getLocalName());
-        // Set the lifelos randomly between 1 and 10
-        lifelos = (int) (Math.random() * 10) + 1;
         chooseHospital(); // Send a request message to find a hospital
-
         addBehaviour(new LifeBehaviour());
+
     }
 
     private void chooseHospital() {
-        	
-            // Randomly choose a hospital from the list
-            int randomIndex = new Random().nextInt(hospitalNames.size());
-            chosenHospital = hospitalNames.get(randomIndex);
+        // Randomly choose a hospital from the list
+        int randomIndex = new Random().nextInt(hospitalNames.size());
+        String chosenHospital = hospitalNames.get(randomIndex);
+        
+        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+        message.setContent(getLocalName()); // Send the patient's name as content
+        message.addReceiver(new AID(chosenHospital, AID.ISLOCALNAME));
+        send(message);
 
-            ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-            message.addReceiver(new AID(chosenHospital, AID.ISLOCALNAME));
-            send(message);
+        System.out.println("Patient " + getLocalName() + " chose Hospital " + chosenHospital);
+    }
 
-            System.out.println("Patient " + getLocalName() + " chose Hospital " + chosenHospital);
-        }
-    
 
     private class LifeBehaviour extends CyclicBehaviour {
         public void action() {

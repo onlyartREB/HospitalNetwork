@@ -1,25 +1,19 @@
 package rampup;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
-
 import jade.core.Runtime;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.concurrent.CountDownLatch;
 public class patientGeneratorOptFnct {
-    public void generate(double lambda, List<String> hospitalNames) {
+    public void generate(double lambda, List<String> hospitalNames, AgentContainer container) {
         PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
         int randomNumber = poissonDistribution.sample();
         try {
-            Runtime rt = Runtime.instance();
-            Profile profile = new ProfileImpl();
-            AgentContainer container = rt.createMainContainer(profile);
-
             for (int i = 1; i <= randomNumber; i++) {
                 String patientName = "Patient" + System.currentTimeMillis() + i;
                 AgentController patientController = container.createNewAgent(patientName, "rampup.Patient",
@@ -31,3 +25,4 @@ public class patientGeneratorOptFnct {
         }
     }
 }
+
