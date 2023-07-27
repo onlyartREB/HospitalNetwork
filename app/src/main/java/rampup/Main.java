@@ -1,4 +1,5 @@
 package rampup;
+
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -33,19 +34,19 @@ public class Main {
             // Create a list to store the hospital names
             List<String> hospitalNames = new ArrayList<>();
 
-            // Create and start the Hospital agents
-            AgentController hospitalController1 = mainContainer.createNewAgent("Hospital1", Hospital.class.getName(), null);
-            hospitalController1.start();
-            hospitalNames.add("Hospital1");
-
-            AgentController hospitalController2 = mainContainer.createNewAgent("Hospital2", Hospital.class.getName(), null);
-            hospitalController2.start();
-            hospitalNames.add("Hospital2");
+            // Create and start the Hospital agents dynamically
+            int numHospitals = 2;
+            for (int i = 1; i <= numHospitals; i++) {
+                String hospitalName = "Hospital" + i;
+                AgentController hospitalController = mainContainer.createNewAgent(hospitalName, Hospital.class.getName(), null);
+                hospitalController.start();
+                hospitalNames.add(hospitalName);
+            }
 
             System.out.println("Simulation started.");
 
             // Generate patients and pass the hospital names and the patient container
-            double lambda = 10;
+            double lambda = 5;
 
             patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
             patientGenerator.generate(lambda, hospitalNames, patientContainer);
@@ -54,8 +55,9 @@ public class Main {
             Thread.sleep(10000); // Adjust the time as needed to allow the simulation to run
 
             // Terminate the agents and the JADE platform
-            hospitalController1.kill();
-            hospitalController2.kill();
+            for (String hospitalName : hospitalNames) {
+                mainContainer.getAgent(hospitalName).kill();
+            }
 
             runtime.shutDown();
 

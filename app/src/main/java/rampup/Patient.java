@@ -25,32 +25,27 @@ public class Patient extends Agent {
     }
 
     private void chooseHospital() {
-        // Randomly choose a hospital from the list
-        int randomIndex = new Random().nextInt(hospitalNames.size());
-        String chosenHospital = hospitalNames.get(randomIndex);
-        
-        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-        message.setContent(getLocalName()); // Send the patient's name as content
-        message.addReceiver(new AID(chosenHospital, AID.ISLOCALNAME));
-        send(message);
-
-        System.out.println("Patient " + getLocalName() + " chose Hospital " + chosenHospital);
+        boolean accepted = false;
+        while (!accepted) {
+            int randomIndex = new Random().nextInt(hospitalNames.size());
+            String chosenHospital = hospitalNames.get(randomIndex);
+            System.out.println("Patient " + getLocalName() + " chose Hospital " + chosenHospital);
+            ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+            message.setContent(getLocalName()); // Send the patient's name as content
+            message.addReceiver(new AID(chosenHospital, AID.ISLOCALNAME));
+            send(message);
+            
+            ACLMessage reply = blockingReceive();
+            if (reply != null && reply.getPerformative() == ACLMessage.AGREE) {
+                accepted = true;
+            }
+        }
     }
 
 
     private class LifeBehaviour extends CyclicBehaviour {
         public void action() {
-            ACLMessage reply = receive();
-            if (reply != null) {
-                if (reply.getPerformative() == ACLMessage.AGREE) {
-                    System.out.println("Patient " + getLocalName() + " - Accepted by Hospital: " + reply.getSender().getLocalName());
-                    // Proceed with the patient's life behavior now that a hospital has accepted the patient
-                } else {
-                    System.out.println("Patient " + getLocalName() + " - Rejected by Hospital: " + reply.getSender().getLocalName());
-                }
-            } else {
-                block();
-            }
+    
         }
     }
 }
