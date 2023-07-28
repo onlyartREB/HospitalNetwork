@@ -9,6 +9,9 @@ import jade.core.ProfileImpl;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+
+
+
 public class patientGeneratorOptFnct {
     public void generate(double lambda, List<String> hospitalNames, AgentContainer container) {
         PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);

@@ -12,11 +12,19 @@ import java.util.List;
 public class Hospital extends Agent {
     private int capacity = 20; // Maximum number of patients the hospital can handle
 	private int activePatients = 0; // Number of currently active patients
-
+    private boolean isSpecialHospital = false; // Flag to identify the special hospital
     private List<PatientData> patientList; // List to store the admitted patients
 
     protected void setup() {
+    	
         System.out.println("Hospital: " + getLocalName());
+        Object[] args = getArguments();
+        if (args != null && args.length > 0 && args[0] instanceof Boolean) {
+            isSpecialHospital = (Boolean) args[0];
+            if (isSpecialHospital) {
+                capacity = 100; // Set a higher capacity for the special hospital 
+            }
+        }
         patientList = new ArrayList<>();
         addBehaviour(new PatientReceiver());
         addBehaviour(new Gestion(this, 1000));
@@ -43,7 +51,7 @@ public class Hospital extends Agent {
                     System.out.println("Patient " + patientAgentName + " rejected by " + getLocalName()+ "***********");
                 }
             } else {
-                block();
+                block(); 
             }
         }
     }
@@ -54,9 +62,10 @@ public class Hospital extends Agent {
         public void onTick() {
             treatPatients(); // Treat the patients at each tick (day) 
         }
+        
     }
     private void treatPatients() {
-        List<PatientData> treatedPatients = new ArrayList<>();
+        List<PatientData> treatedPatients = new ArrayList<>(); 
       
         for (PatientData patient : patientList) {
             patient.decrementLifeLos();

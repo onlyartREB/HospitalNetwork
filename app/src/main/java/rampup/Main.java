@@ -42,11 +42,16 @@ public class Main {
                 hospitalController.start();
                 hospitalNames.add(hospitalName);
             }
+            String specialHospitalName = "SpecialHospital";
+            Object[] specialArgs = new Object[]{true}; // Pass 'true' as an argument to identify it as the special hospital
+            AgentController specialHospitalController = mainContainer.createNewAgent(specialHospitalName, Hospital.class.getName(), specialArgs);
+            specialHospitalController.start();
+             
 
             System.out.println("Simulation started.");
 
             // Generate patients and pass the hospital names and the patient container
-            double lambda = 5;
+            double lambda = 100;
 
             patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
             patientGenerator.generate(lambda, hospitalNames, patientContainer);
