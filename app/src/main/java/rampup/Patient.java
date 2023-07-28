@@ -2,7 +2,6 @@ package rampup;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.core.AID;
 
@@ -11,12 +10,18 @@ import java.util.Random;
 
 public class Patient extends Agent {
     private List<String> hospitalNames; // List of available hospitals in the container
-
+    Coordinates coordinates; 
     protected void setup() {
         Object[] args = getArguments();
+        
+        // Get the patient's coordinates from the arguments
+        if (args != null && args.length > 1 && args[1] instanceof Coordinates) {
+           coordinates = (Coordinates) args[1];
+        }
         if (args != null && args.length > 0) {
             hospitalNames = (List<String>) args[0]; // Get the list of hospital names
         }
+        
 
         System.out.println("Patient: " + getLocalName());
         chooseHospital(); // Send a request message to find a hospital

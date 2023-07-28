@@ -1,14 +1,9 @@
 package rampup;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
-import jade.core.Runtime;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
-import jade.core.Profile;
-import jade.core.ProfileImpl;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 
 
