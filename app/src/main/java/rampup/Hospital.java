@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Hospital extends Agent {
-	private int capacity = 20; // Maximum number of patients the hospital can handle
+	private int capacity = 4; // Maximum number of patients the hospital can handle
 	private int capacityCheckInterval = 5; // Number of ticks (weeks) between capacity checks
 
 	private int activePatients = 0; // Number of currently active patients
@@ -18,7 +18,6 @@ public class Hospital extends Agent {
 	private int bedOccupancyRate;
 	private int averageWaitTime;
 	double performanceScore;
-    private Coordinates coordinates; // Add this variable to store the hospital's coordinates
 
 
 	protected void setup() {
@@ -31,9 +30,7 @@ public class Hospital extends Agent {
 				capacity = 100; // Set a higher capacity for the special hospital
 			}
 		}
-	    if (args != null && args.length > 1 && args[1] instanceof Coordinates) {
-            coordinates = (Coordinates) args[1]; // Get the hospital's coordinates from the arguments
-        }
+	
 		patientList = new ArrayList<>();
 		addBehaviour(new PatientReceiver(this, 1000));
 
@@ -52,7 +49,6 @@ public class Hospital extends Agent {
 			ACLMessage message = receive();
 			if (message != null) {
 				String patientAgentName = message.getContent();
-				System.out.println("__________________________________________________________");
 				System.out.println(getLocalName() + " Received patient: " + patientAgentName);
 				if (patientList.size() < capacity) {
 					patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
@@ -61,8 +57,7 @@ public class Hospital extends Agent {
 					reply.addReceiver(message.getSender());
 					send(reply);
 					System.out.println(
-							"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________");
-					treatPatients(); // Treat the patients at each tick (day)
+					"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________");
 
 				} else {
 					ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
@@ -75,20 +70,18 @@ public class Hospital extends Agent {
 			} else {
 				block();
 			}
-			  if (getTickCount() % capacityCheckInterval == 0) {
-		            checkCapacity();
-		        }
+		
 		}
 
 	}
 
-	private void checkCapacity() {
+	/*private void checkCapacity() {
 		updateBedOccupancyRate();
 		updateAverageWaitTime();
 		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, averageWaitTime);
 		System.out.println("Performance Score of " + getLocalName() + " : " + performanceScore);
 		adjustCapacity();
-	}
+	}*/
 
 	private void updateBedOccupancyRate() {
 		bedOccupancyRate = (activePatients * 100) / capacity;
