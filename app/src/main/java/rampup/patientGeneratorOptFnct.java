@@ -15,7 +15,7 @@ import java.util.List;
 public class patientGeneratorOptFnct {
 
     private int patientCounter = 0; // Initialize a counter for patients
-    private long patientCreationDelay = 3000; // Delay between patient creation in milliseconds
+    private long patientCreationDelay = 2000; // Delay between patient creation in milliseconds
 
     public void generate(List<Integer> lambdas, AgentContainer container, List<Zone> zones) {
         for (int lambda : lambdas) {
@@ -32,12 +32,20 @@ public class patientGeneratorOptFnct {
                             AgentController patientController = container.createNewAgent(patientName, "rampup.Patient",
                                     new Object[] { zone });
                             patientController.start();
-                            Thread.sleep(patientCreationDelay);
+
                         }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                
+                try {
+					Thread.sleep((lambda+4)*1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
             }
         }
     }

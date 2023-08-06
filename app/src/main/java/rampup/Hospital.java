@@ -2,14 +2,17 @@ package rampup;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Hospital extends Agent {
-	private int capacity = 4; // Maximum number of patients the hospital can handle
+	private int capacity = 1000; // Maximum number of patients the hospital can handle
 	private int capacityCheckInterval = 5; // Number of ticks (weeks) between capacity checks
 
 	private int activePatients = 0; // Number of currently active patients
@@ -17,11 +20,9 @@ public class Hospital extends Agent {
 	private List<PatientData> patientList; // List to store the admitted patients
 	private int bedOccupancyRate;
 	private int averageWaitTime;
-	double performanceScore;
-
+	private double performanceScore;
 
 	protected void setup() {
-
 		System.out.println("Hospital: " + getLocalName());
 		Object[] args = getArguments();
 		if (args != null && args.length > 0 && args[0] instanceof Boolean) {
@@ -30,22 +31,29 @@ public class Hospital extends Agent {
 				capacity = 100; // Set a higher capacity for the special hospital
 			}
 		}
-	
-		patientList = new ArrayList<>();
-		addBehaviour(new PatientReceiver(this, 1000));
 
-		// double performanceScore = evaluatePerformance(75, 25); // Exemple to
-		// calculate performanceScore
-		// System.out.println("Performance Score: " + performanceScore);
+		patientList = new ArrayList<>();
+		addBehaviour(new PatientReceiver(this, 1));
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		addBehaviour(new PatientTreatment());
+
 	}
 
 	private class PatientReceiver extends TickerBehaviour {
+
 		public PatientReceiver(Agent a, long period) {
 			super(a, period);
-			// TODO Auto-generated constructor stub
+			// Set the message template to receive REQUEST messages
 		}
 
 		public void onTick() {
+			// Receive the patient request message using the registered message template
 			ACLMessage message = receive();
 			if (message != null) {
 				String patientAgentName = message.getContent();
@@ -56,56 +64,28 @@ public class Hospital extends Agent {
 					ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
 					reply.addReceiver(message.getSender());
 					send(reply);
-					System.out.println(
-					"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________");
+					System.out
+							.println("Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
+									+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
 
 				} else {
 					ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
 					reply.addReceiver(message.getSender());
 					send(reply);
-
 					System.out
 							.println("Patient " + patientAgentName + " rejected by " + getLocalName() + "***********");
 				}
-			} else {
-				block();
+
 			}
-		
 		}
 
 	}
 
-	/*private void checkCapacity() {
-		updateBedOccupancyRate();
-		updateAverageWaitTime();
-		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, averageWaitTime);
-		System.out.println("Performance Score of " + getLocalName() + " : " + performanceScore);
-		adjustCapacity();
-	}*/
-
-	private void updateBedOccupancyRate() {
-		bedOccupancyRate = (activePatients * 100) / capacity;
-
-	}
-
-	private void updateAverageWaitTime() {
-		int totalWaitTime = 0;
-		for (PatientData patient : patientList) {
-			totalWaitTime += patient.getWaitingTime();
+	private class PatientTreatment extends CyclicBehaviour {
+		public void action() {
+			// Treat the patients here...
+			treatPatients();
 		}
-		averageWaitTime = patientList.isEmpty() ? 0 : totalWaitTime / patientList.size();
-
-		/*
-		 * if (patientList.isEmpty()) { averageWaitTime = 0; } else { averageWaitTime =
-		 * totalWaitTime / patientList.size(); }
-		 */
-	}
-
-	private void adjustCapacity() {
-		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
-		capacity = HospitalCapacityAdjuster.adjustCapacity(performanceScore, capacity);
-		System.out.println(getLocalName() + "Adjusted Capacity: " + capacity);
-
 	}
 
 	private void treatPatients() {
@@ -113,8 +93,8 @@ public class Hospital extends Agent {
 
 		for (PatientData patient : patientList) {
 			patient.decrementLifeLos();
-			System.out.println("Treating patient  " + patient.getName() + ", Life loss: " + patient.getLifeLos()
-					+ ", Hospital: " + patient.getHospitalName());
+			System.out.println("---------------------Treating patient  " + patient.getName() + ", Life loss: "
+					+ patient.getLifeLos() + ", Hospital: " + patient.getHospitalName());
 
 			// Test if the patient's life loss has reached 0, indicating that the patient
 			// has been treated
@@ -135,6 +115,16 @@ public class Hospital extends Agent {
 		}
 	}
 
+	private void updateBedOccupancyRate() {
+		bedOccupancyRate = (activePatients * 100) / capacity;
+	}
+
+	private void adjustCapacity() {
+		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
+		capacity = HospitalCapacityAdjuster.adjustCapacity(performanceScore, capacity);
+		System.out.println(getLocalName() + "Adjusted Capacity: " + capacity);
+	}
+
 	// HOSPITAL DATA CENTER
 	// *********************************************************************************
 	private static class PatientData {
@@ -146,12 +136,10 @@ public class Hospital extends Agent {
 
 		PatientData(String name, AID patientAID, String hospitalName) {
 			this.name = name;
-			this.lifeLos = (int) (Math.random() * 10) + 1;
-			; // Random lifelos
+			this.lifeLos = (int) (Math.random() * 10) + 1; // Random lifelos
 			this.patientAID = patientAID;
 			this.hospitalName = hospitalName;
 			this.entryTime = System.currentTimeMillis();
-
 		}
 
 		public String getHospitalName() {
@@ -170,14 +158,8 @@ public class Hospital extends Agent {
 			return lifeLos;
 		}
 
-		long getWaitingTime() {
-			return System.currentTimeMillis() - entryTime;
-		}
-
 		void decrementLifeLos() {
 			lifeLos--;
 		}
-
 	}
-
 }
