@@ -7,13 +7,13 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.core.behaviours.SequentialBehaviour;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Hospital extends Agent {
 	private int capacity = 1000; // Maximum number of patients the hospital can handle
-	private int capacityCheckInterval = 5; // Number of ticks (weeks) between capacity checks
 
 	private int activePatients = 0; // Number of currently active patients
 	private boolean isSpecialHospital = false; // Flag to identify the special hospital
@@ -21,6 +21,7 @@ public class Hospital extends Agent {
 	private int bedOccupancyRate;
 	private int averageWaitTime;
 	private double performanceScore;
+	private int numRejection=0;
 
 	protected void setup() {
 		System.out.println("Hospital: " + getLocalName());
@@ -33,15 +34,7 @@ public class Hospital extends Agent {
 		}
 
 		patientList = new ArrayList<>();
-		addBehaviour(new PatientReceiver(this, 1));
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		addBehaviour(new PatientTreatment());
+		addBehaviour(new PatientReceiver(this, 2000));
 
 	}
 
@@ -54,39 +47,43 @@ public class Hospital extends Agent {
 
 		public void onTick() {
 			// Receive the patient request message using the registered message template
-			ACLMessage message = receive();
-			if (message != null) {
-				String patientAgentName = message.getContent();
-				System.out.println(getLocalName() + " Received patient: " + patientAgentName);
-				if (patientList.size() < capacity) {
-					patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
-							getLocalName()));
-					ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
-					reply.addReceiver(message.getSender());
-					send(reply);
-					System.out
-							.println("Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
-									+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
+			do {
 
-				} else {
-					ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
-					reply.addReceiver(message.getSender());
-					send(reply);
-					System.out
-							.println("Patient " + patientAgentName + " rejected by " + getLocalName() + "***********");
+				ACLMessage message = receive();
+				if (message != null) {
+					String patientAgentName = message.getContent();
+					System.out.println(getLocalName() + " Received patient: " + patientAgentName);
+					if (patientList.size() < capacity) {
+						patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
+								getLocalName()));
+						ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
+						reply.addReceiver(message.getSender());
+						send(reply);
+						System.out.println(
+								"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
+										+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
+
+						patientGeneratorOptFnct.decrementCounter(); // Decrement the global patient counter
+
+					} else {
+						ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
+						reply.addReceiver(message.getSender());
+						send(reply);
+						System.out.println(
+								"Patient " + patientAgentName + " rejected by " + getLocalName() + "***********");
+						numRejection++;
+					}
+
 				}
+				if (patientGeneratorOptFnct.getCounter() == 0) {
+					treatPatients();
+					checkCapacity();
+				}
+			} while (patientGeneratorOptFnct.getCounter() != 0);
 
-			}
 		}
 
-	}
-
-	private class PatientTreatment extends CyclicBehaviour {
-		public void action() {
-			// Treat the patients here...
-			treatPatients();
-		}
-	}
+	}// Ce qu'on a parlé = Cout de modification, d'ouverture, cout de maintien pour le personnel ,cout d'affectation la matrice,cout rejet sahel 
 
 	private void treatPatients() {
 		List<PatientData> treatedPatients = new ArrayList<>();
@@ -115,12 +112,20 @@ public class Hospital extends Agent {
 		}
 	}
 
+	private void checkCapacity() {
+		updateBedOccupancyRate();
+		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, numRejection);
+		//System.out.println("Performance Score of " + getLocalName() + " : " + performanceScore);
+		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
+		adjustCapacity();
+	}
+
 	private void updateBedOccupancyRate() {
 		bedOccupancyRate = (activePatients * 100) / capacity;
 	}
 
 	private void adjustCapacity() {
-		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
+
 		capacity = HospitalCapacityAdjuster.adjustCapacity(performanceScore, capacity);
 		System.out.println(getLocalName() + "Adjusted Capacity: " + capacity);
 	}

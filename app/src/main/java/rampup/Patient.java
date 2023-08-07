@@ -26,7 +26,6 @@ public class Patient extends Agent {
 
 	    for (HospitalData hospital : patientZone.getHospitals()) {
 	        chosenHospital = hospital;
-	        System.out.println("__________________________________________________________");
 	        System.out.println("Patient " + getLocalName() + " in zone " + patientZone.getZoneIndex()
 	                + " chose Hospital " + chosenHospital.getName());
 
