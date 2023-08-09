@@ -20,41 +20,41 @@ public class Patient extends Agent {
 		addBehaviour(new LifeBehaviour());
 	}
 
-	private void chooseHospital(){
-	    HospitalData chosenHospital = null;
-	    boolean accepted = false;
+	private void chooseHospital() {
+		HospitalData chosenHospital = null;
+		boolean accepted = false;
 
-	    for (HospitalData hospital : patientZone.getHospitals()) {
-	        chosenHospital = hospital;
-	        System.out.println("Patient " + getLocalName() + " in zone " + patientZone.getZoneIndex()
-	                + " chose Hospital " + chosenHospital.getName());
+		for (HospitalData hospital : patientZone.getHospitals()) {
+			chosenHospital = hospital;
+			System.out.println("Patient " + getLocalName() + " in zone " + patientZone.getZoneIndex()
+					+ " chose Hospital " + chosenHospital.getName());
 
-	        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-	        message.setContent(getLocalName()); // Send the patient's name as content
-	        message.addReceiver(new AID(chosenHospital.getName(), AID.ISLOCALNAME));
-	        send(message);
-            
-	        ACLMessage reply;
-	        do {
-	            reply = blockingReceive(0); // Check for incoming messages with zero timeout
-	        } while (reply == null);
+			ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+			message.setContent(getLocalName()); // Send the patient's name as content
+			message.addReceiver(new AID(chosenHospital.getName(), AID.ISLOCALNAME));
+			send(message);
 
-	        if (reply.getPerformative() == ACLMessage.AGREE) {
-	            accepted = true;
-	            break; // Exit the loop since the patient is accepted by a hospital
-	        }
-	    }
+			ACLMessage reply;
+			do {
+				reply = blockingReceive(0); // Check for incoming messages with zero timeout
+			} while (reply == null);
 
-	    if (!accepted && chosenHospital != null) {
-	        // The patient was not accepted by any hospital, try the special hospital
-	        String specialHospitalName = "SpecialHospital"; // Change this to the actual name of the special hospital.
-	        System.out.println("Patient " + getLocalName() + " in zone " + patientZone.getZoneIndex()
-	                + " chose the Special Hospital.");
-	        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-	        message.setContent(getLocalName()); // Send the patient's name as content
-	        message.addReceiver(new AID(specialHospitalName, AID.ISLOCALNAME));
-	        send(message);
-	    }
+			if (reply.getPerformative() == ACLMessage.AGREE) {
+				accepted = true;
+				break; // Exit the loop since the patient is accepted by a hospital
+			}
+		}
+
+		if (!accepted && chosenHospital != null) {
+			// The patient was not accepted by any hospital, try the special hospital
+			String specialHospitalName = "SpecialHospital"; // Change this to the actual name of the special hospital.
+			System.out.println("Patient " + getLocalName() + " in zone " + patientZone.getZoneIndex()
+					+ " chose the Special Hospital.");
+			ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+			message.setContent(getLocalName()); // Send the patient's name as content
+			message.addReceiver(new AID(specialHospitalName, AID.ISLOCALNAME));
+			send(message);
+		}
 	}
 
 	private class LifeBehaviour extends CyclicBehaviour {

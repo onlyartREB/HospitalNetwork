@@ -102,8 +102,7 @@ public class Main {
 			System.out.println("Simulation started.");
 
 
-			patientGeneratorOptFnct patientGenerator = new patientGeneratorOptFnct();
-			patientGenerator.generate(lambdas, patientContainer, zones);
+			patientGeneratorOptFnct.generate(lambdas, patientContainer, zones,numHospitals );
 
 			// Wait for the simulation to finish
 			Thread.sleep(10000); // Adjust the time as needed to allow the simulation to run

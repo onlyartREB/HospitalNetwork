@@ -11,6 +11,7 @@ import jade.core.behaviours.SequentialBehaviour;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Hospital extends Agent {
 	private int capacity = 1000; // Maximum number of patients the hospital can handle
@@ -19,9 +20,8 @@ public class Hospital extends Agent {
 	private boolean isSpecialHospital = false; // Flag to identify the special hospital
 	private List<PatientData> patientList; // List to store the admitted patients
 	private int bedOccupancyRate;
-	private int averageWaitTime;
 	private double performanceScore;
-	private int numRejection=0;
+	private int numRejection = 0;
 
 	protected void setup() {
 		System.out.println("Hospital: " + getLocalName());
@@ -34,7 +34,7 @@ public class Hospital extends Agent {
 		}
 
 		patientList = new ArrayList<>();
-		addBehaviour(new PatientReceiver(this, 2000));
+		addBehaviour(new PatientReceiver(this,1000));
 
 	}
 
@@ -47,8 +47,17 @@ public class Hospital extends Agent {
 
 		public void onTick() {
 			// Receive the patient request message using the registered message template
-			do {
 
+               while(patientGeneratorOptFnct.generating==true) {
+            	   try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+               }
+               
+               while(patientGeneratorOptFnct.patientCounter >0) {
 				ACLMessage message = receive();
 				if (message != null) {
 					String patientAgentName = message.getContent();
@@ -62,9 +71,10 @@ public class Hospital extends Agent {
 						System.out.println(
 								"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
 										+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
-
-						patientGeneratorOptFnct.decrementCounter(); // Decrement the global patient counter
-
+						patientGeneratorOptFnct.decrementCounter();
+						System.out.println("Nombre de patient restant : "+patientGeneratorOptFnct.patientCounter);
+						
+						
 					} else {
 						ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
 						reply.addReceiver(message.getSender());
@@ -75,15 +85,14 @@ public class Hospital extends Agent {
 					}
 
 				}
-				if (patientGeneratorOptFnct.getCounter() == 0) {
-					treatPatients();
-					checkCapacity();
-				}
-			} while (patientGeneratorOptFnct.getCounter() != 0);
-
+	
+               }
+			}
+	
+			
 		}
 
-	}// Ce qu'on a parlé = Cout de modification, d'ouverture, cout de maintien pour le personnel ,cout d'affectation la matrice,cout rejet sahel 
+	
 
 	private void treatPatients() {
 		List<PatientData> treatedPatients = new ArrayList<>();
@@ -110,14 +119,18 @@ public class Hospital extends Agent {
 			send(reply);
 			System.out.println("Patient " + treatedPatient.getName() + " treated and released from " + getLocalName());
 		}
+
 	}
 
 	private void checkCapacity() {
 		updateBedOccupancyRate();
 		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, numRejection);
-		//System.out.println("Performance Score of " + getLocalName() + " : " + performanceScore);
+		// System.out.println("Performance Score of " + getLocalName() + " : " +
+		// performanceScore);
 		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
 		adjustCapacity();
+
+	
 	}
 
 	private void updateBedOccupancyRate() {
@@ -128,6 +141,8 @@ public class Hospital extends Agent {
 
 		capacity = HospitalCapacityAdjuster.adjustCapacity(performanceScore, capacity);
 		System.out.println(getLocalName() + "Adjusted Capacity: " + capacity);
+		
+
 	}
 
 	// HOSPITAL DATA CENTER
