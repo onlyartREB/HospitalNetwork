@@ -1,5 +1,17 @@
-# Ignore Gradle project-specific cache directory
 .gradle
+build/
+bin/
+.settings
+.DS_Store
+.classpath
+.project
+.metadata
+.idea/
 
-# Ignore Gradle build output directory
-build
+# Avoid ignoring some jar files
+*.jar
+!gradle-wrapper.jar
+!jade.jar
+
+APDescription.txt
+MTPs-Main-Container.txt

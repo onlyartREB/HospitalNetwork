@@ -1,21 +1,32 @@
 package rampup;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Zone {
-    private List<Hospital> hospitals;
+    private int zoneIndex;
+    private double proportionOfPatients;
+    private List<HospitalData> hospitals;
 
-    public Zone() {
-        hospitals = new ArrayList<>();
+    public Zone(int zoneIndex, double proportionOfPatients) {
+        this.zoneIndex = zoneIndex;
+        this.proportionOfPatients = proportionOfPatients;
+        this.hospitals = new ArrayList<>();
     }
 
-    public void addHospital(Hospital hospital) {
-        hospitals.add(hospital);
+    public int getZoneIndex() {
+        return zoneIndex;
     }
-    public int lambda(int time, Hospital hopital) {
-    	int mean = 0; 
-    	
-    	return mean;
-    	
+
+    public double getProportionOfPatients() {
+        return proportionOfPatients;
+    }
+
+    public List<HospitalData> getHospitals() {
+        return hospitals;
+    }
+
+    public void addHospital(String name, int cost) {
+        hospitals.add(new HospitalData(name, cost));
     }
 }
