@@ -2,104 +2,219 @@ package rampup;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Hospital extends Agent {
-	private int capacity = 1000; // Maximum number of patients the hospital can handle
 
+	private int capacity = 10000; // Maximum number of patients the hospital can handle
 	private int activePatients = 0; // Number of currently active patients
 	private boolean isSpecialHospital = false; // Flag to identify the special hospital
 	private List<PatientData> patientList; // List to store the admitted patients
 	private int bedOccupancyRate;
 	private double performanceScore;
 	private int numRejection = 0;
+	public static int numAdmissions = 0;
+	public boolean allAdmit = false;
+	private Main mainThread;
+	
+
+	/**
+	 * Extract main thread from passed arguments
+	 * 
+	 * @param args
+	 * @return
+	 */
+	private Main extractMainThreadFrmArgs(Object[] args) {
+		Main mainThread = null;
+		for (Object arg : args) {
+			if (arg instanceof Main) {
+				mainThread = (Main) arg;
+			}
+		}
+		return mainThread;
+	}
+
+	/**
+	 * Extract isSpacialHospital from passed arguments
+	 * 
+	 * @param args
+	 * @return
+	 */
+	private Boolean extractIsSpecialHospitalFrmArgs(Object[] args) {
+		Boolean isSpecialHospital = false;
+		for (Object arg : args) {
+			if (arg instanceof Boolean) {
+				isSpecialHospital = (Boolean) arg;
+			}
+		}
+		return isSpecialHospital;
+	}
 
 	protected void setup() {
-		System.out.println("Hospital: " + getLocalName());
+		safePrintln("Hospital: " + getLocalName());
 		Object[] args = getArguments();
-		if (args != null && args.length > 0 && args[0] instanceof Boolean) {
-			isSpecialHospital = (Boolean) args[0];
-			if (isSpecialHospital) {
-				capacity = 100; // Set a higher capacity for the special hospital
-			}
+		Main mainThread = extractMainThreadFrmArgs(args);
+		Boolean isSpecialHospital = extractIsSpecialHospitalFrmArgs(args);
+		if (isSpecialHospital) {
+			this.capacity = 10000; // Set a higher capacity for the special hospital
 		}
 
 		patientList = new ArrayList<>();
-		addBehaviour(new PatientReceiver(this,1000));
+
+		addBehaviour(new PatientReceiver(this, 1, this, mainThread, this.capacity));
 
 	}
 
-	private class PatientReceiver extends TickerBehaviour {
+	public class PatientReceiver extends TickerBehaviour {
 
-		public PatientReceiver(Agent a, long period) {
-			super(a, period);
-			// Set the message template to receive REQUEST messages
+		private int capacity = 0;
+		private Main mainThread;
+		private Hospital hospital;
+		private boolean isFirstTreatment = true;
+
+		public Hospital getHospital() {
+			return hospital;
 		}
 
-		public void onTick() {
-			// Receive the patient request message using the registered message template
+		public PatientReceiver(Agent a, long period, Hospital hospital, Main mainThread, int capacity) {
+			super(a, period);
+			this.mainThread = mainThread;
+			this.capacity = capacity;
+			this.hospital = hospital;
+			this.isFirstTreatment = true;
+			PatientTreatment.getInstance(this.mainThread).addNewPatientReceiver(this);
 
-               while(patientGeneratorOptFnct.generating==true) {
-            	   try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			// TODO Auto-generated constructor stub
+		}
+
+		/**
+		 * 
+		 */
+
+		public void onTick() {
+
+		// Receive the patient request message using the registered message template
+		if(PatientTreatment.getInstance(this.mainThread).getPatientReceivers().containsKey(this) &&
+				!PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this)) {
+			safePrintln(this.getHospital().getLocalName() + " : " + PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this));	
+
+			if (this.isFirstTreatment) {
+					synchronized (this) {
+						try {
+							this.wait();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
 				}
-               }
-               
-               while(patientGeneratorOptFnct.patientCounter >0) {
-				ACLMessage message = receive();
-				if (message != null) {
-					String patientAgentName = message.getContent();
-					System.out.println(getLocalName() + " Received patient: " + patientAgentName);
-					if (patientList.size() < capacity) {
-						patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
-								getLocalName()));
-						ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
-						reply.addReceiver(message.getSender());
-						send(reply);
-						System.out.println(
-								"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
-										+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
-						patientGeneratorOptFnct.decrementCounter();
-						System.out.println("Nombre de patient restant : "+patientGeneratorOptFnct.patientCounter);
-						
-						
-					} else {
-						ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
-						reply.addReceiver(message.getSender());
-						send(reply);
-						System.out.println(
-								"Patient " + patientAgentName + " rejected by " + getLocalName() + "***********");
-						numRejection++;
+				this.isFirstTreatment = false;
+				while (PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0) {
+					ACLMessage message = receive();
+					if (message != null) {
+						String patientAgentName = message.getContent();
+						safePrintln(getLocalName() + " Received patient: " + patientAgentName);
+						if (patientList.size() < capacity) {
+							patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
+									getLocalName()));
+							ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
+							reply.addReceiver(message.getSender());
+							send(reply);
+							safePrintln(
+									"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
+											+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
+							synchronized (Hospital.class) {
+								if ((PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0)) {
+									numAdmissions++;
+									;
+								}
+
+								safePrintln("Number of admissions : " + numAdmissions);
+							}
+							synchronized (PatientTreatment.getInstance(this.mainThread)) {
+								if ((PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0)) {
+									PatientTreatment.getInstance(this.mainThread).consumePatient();
+								}
+
+							}
+
+
+						} else {
+
+							ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
+							reply.addReceiver(message.getSender());
+							send(reply);
+							safePrintln(
+									"Patient " + message.getContent() + " rejected by " + getLocalName() + "*********");
+							numRejection++;
+							safePrintln("Number of remaining patients "
+									+ PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount());
+
+						}
 					}
 
 				}
-	
-               }
+				
+			   
+			    	 synchronized(this) {
+			    		  try {
+			    			  treatPatientAndFinishTreatment();
+			    			  this.wait();
+		
+			    		  }
+			    		  catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+					
+				} 
 			}
-	
+			
 			
 		}
 
-	
+		private void treatPatientAndFinishTreatment() {
 
-	private void treatPatients() {
+			treatPatients();
+			safePrintln(this.getHospital().getLocalName() + " are treating patient");
+			// checkCapacity();
+			synchronized (PatientTreatment.getInstance(this.mainThread)) {
+				safePrintln(this.getHospital().getLocalName() + " finished treatment ");
+				PatientTreatment.getInstance().addFinishedPatientReceiver(this);
+				
+				safePrintln("Number of remaining patients "
+						+ PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount());
+			
+
+			}
+
+		}
+
+	}
+
+	void treatPatients() {
+
+		safePrintln(
+				"Number of hospitals treating------------------------------------------ " + "  by  :" + getLocalName());
+
 		List<PatientData> treatedPatients = new ArrayList<>();
 
 		for (PatientData patient : patientList) {
 			patient.decrementLifeLos();
-			System.out.println("---------------------Treating patient  " + patient.getName() + ", Life loss: "
+			safePrintln("---------------------Treating patient  " + patient.getName() + ", Life loss: "
 					+ patient.getLifeLos() + ", Hospital: " + patient.getHospitalName());
 
 			// Test if the patient's life loss has reached 0, indicating that the patient
@@ -117,36 +232,49 @@ public class Hospital extends Agent {
 			ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
 			reply.addReceiver(treatedPatient.getPatientAID());
 			send(reply);
-			System.out.println("Patient " + treatedPatient.getName() + " treated and released from " + getLocalName());
+			safePrintln("Patient " + treatedPatient.getName() + " treated and released from " + getLocalName());
 		}
-
 	}
 
 	private void checkCapacity() {
 		updateBedOccupancyRate();
 		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, numRejection);
-		// System.out.println("Performance Score of " + getLocalName() + " : " +
+		// safePrintln("Performance Score of " + getLocalName() + " : " +
 		// performanceScore);
-		System.out.println("current capacity of " + getLocalName() + " : " + capacity);
+		safePrintln("current capacity of " + getLocalName() + " : " + capacity);
 		adjustCapacity();
 
-	
+	}
+
+	private void updatenumRejection() {
+		try {
+			numRejection = (activePatients * 100) / capacity;
+
+		} catch (Exception e) {
+			numRejection = 0;
+			// TODO: handle exception
+		}
 	}
 
 	private void updateBedOccupancyRate() {
-		bedOccupancyRate = (activePatients * 100) / capacity;
+		try {
+			bedOccupancyRate = (activePatients * 100) / capacity;
+
+		} catch (Exception e) {
+			bedOccupancyRate = 0;
+			// TODO: handle exception
+		}
 	}
 
 	private void adjustCapacity() {
 
 		capacity = HospitalCapacityAdjuster.adjustCapacity(performanceScore, capacity);
-		System.out.println(getLocalName() + "Adjusted Capacity: " + capacity);
-		
+		safePrintln(getLocalName() + "Adjusted Capacity: " + capacity);
 
 	}
 
 	// HOSPITAL DATA CENTER
-	// *********************************************************************************
+	// *******************************************************************************
 	private static class PatientData {
 		private String name;
 		private int lifeLos;
@@ -181,5 +309,10 @@ public class Hospital extends Agent {
 		void decrementLifeLos() {
 			lifeLos--;
 		}
+	}
+	public void safePrintln(String s) {
+		  synchronized (System.out) {
+		    System.out.println(s);
+		  }
 	}
 }
