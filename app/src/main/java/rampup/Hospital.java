@@ -2,24 +2,17 @@ package rampup;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.core.behaviours.SequentialBehaviour;
-import jade.core.behaviours.SimpleBehaviour;
-
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.FileOutputStream;
 
 public class Hospital extends Agent {
 
-	private int capacity = 10000; // Maximum number of patients the hospital can handle
+	private int capacity = 5; // Maximum number of patients the hospital can handle
 	private int activePatients = 0; // Number of currently active patients
 	private boolean isSpecialHospital = false; // Flag to identify the special hospital
 	private List<PatientData> patientList; // List to store the admitted patients
@@ -29,7 +22,6 @@ public class Hospital extends Agent {
 	public static int numAdmissions = 0;
 	public boolean allAdmit = false;
 	private Main mainThread;
-	
 
 	/**
 	 * Extract main thread from passed arguments
@@ -106,12 +98,13 @@ public class Hospital extends Agent {
 
 		public void onTick() {
 
-		// Receive the patient request message using the registered message template
-		if(PatientTreatment.getInstance(this.mainThread).getPatientReceivers().containsKey(this) &&
-				!PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this)) {
-			safePrintln(this.getHospital().getLocalName() + " : " + PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this));	
+			// Receive the patient request message using the registered message template
+			if (PatientTreatment.getInstance(this.mainThread).getPatientReceivers().containsKey(this)
+					&& !PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this)) {
+				safePrintln(this.getHospital().getLocalName() + " : "
+						+ PatientTreatment.getInstance(this.mainThread).getPatientReceivers().get(this));
 
-			if (this.isFirstTreatment) {
+				if (this.isFirstTreatment) {
 					synchronized (this) {
 						try {
 							this.wait();
@@ -128,14 +121,15 @@ public class Hospital extends Agent {
 						String patientAgentName = message.getContent();
 						safePrintln(getLocalName() + " Received patient: " + patientAgentName);
 						if (patientList.size() < capacity) {
-							patientList.add(new PatientData(patientAgentName, new AID(patientAgentName, AID.ISLOCALNAME),
-									getLocalName()));
+							patientList.add(new PatientData(patientAgentName,
+									new AID(patientAgentName, AID.ISLOCALNAME), getLocalName()));
 							ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
 							reply.addReceiver(message.getSender());
 							send(reply);
 							safePrintln(
 									"Patient " + patientAgentName + " admitted to " + getLocalName() + "_____________"
 											+ " with a LOS of " + patientList.get(patientList.size() - 1).getLifeLos());
+
 							synchronized (Hospital.class) {
 								if ((PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0)) {
 									numAdmissions++;
@@ -150,7 +144,6 @@ public class Hospital extends Agent {
 								}
 
 							}
-
 
 						} else {
 
@@ -167,23 +160,21 @@ public class Hospital extends Agent {
 					}
 
 				}
-				
-			   
-			    	 synchronized(this) {
-			    		  try {
-			    			  treatPatientAndFinishTreatment();
-			    			  this.wait();
-		
-			    		  }
-			    		  catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-					
-				} 
+
+				synchronized (this) {
+					try {
+						treatPatientAndFinishTreatment();
+						checkCapacity();
+						this.wait();
+
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
 			}
-			
-			
+
 		}
 
 		private void treatPatientAndFinishTreatment() {
@@ -194,10 +185,9 @@ public class Hospital extends Agent {
 			synchronized (PatientTreatment.getInstance(this.mainThread)) {
 				safePrintln(this.getHospital().getLocalName() + " finished treatment ");
 				PatientTreatment.getInstance().addFinishedPatientReceiver(this);
-				
+
 				safePrintln("Number of remaining patients "
 						+ PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount());
-			
 
 			}
 
@@ -205,6 +195,8 @@ public class Hospital extends Agent {
 
 	}
 
+	
+	
 	void treatPatients() {
 
 		safePrintln(
@@ -310,9 +302,14 @@ public class Hospital extends Agent {
 			lifeLos--;
 		}
 	}
+
 	public void safePrintln(String s) {
-		  synchronized (System.out) {
-		    System.out.println(s);
-		  }
+		synchronized (System.out) {
+			System.out.println(s);
+		}
 	}
+	
+	
+
+	
 }

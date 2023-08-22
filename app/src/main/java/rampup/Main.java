@@ -20,40 +20,47 @@ import org.apache.commons.math3.distribution.PoissonDistribution;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-public class Main  {
+
+import jade.util.ExtendedProperties;
+import jade.util.leap.Properties;
+
+public class Main {
 
 	private int numHospitals;
-	
+
 	public Main(int numHospitals) {
 		this.numHospitals = numHospitals;
 	}
-	
+
 	public void run() {
 		System.out.println("Starting the simulation...");
 
 		// Get the JADE runtime instance
 		Runtime runtime = Runtime.instance();
+		Profile guiProfile = new ProfileImpl();
 
 		// Create a profile with the desired settings
 		Profile profile = new ProfileImpl();
 		profile.setParameter(Profile.MAIN_HOST, "localhost");
 		profile.setParameter(Profile.MAIN_PORT, "1099");
+		profile.setParameter(Profile.GUI, "true"); // This enables the GUI
 
 		try {
 			// Create the main container for the Hospital agents
 			AgentContainer mainContainer = runtime.createMainContainer(profile);
+			mainContainer.start();
 
 			// Create a container for the Patient agents
 			Profile patientProfile = new ProfileImpl();
 			patientProfile.setParameter(Profile.MAIN_HOST, "localhost");
 			patientProfile.setParameter(Profile.MAIN_PORT, "1099");
 			AgentContainer patientContainer = runtime.createAgentContainer(patientProfile);
-			
+			patientContainer.start();
 			List<String> hospitalNames = new ArrayList<>();
-			Object[] args = new Object[] {this};
+			Object[] args = new Object[] { this };
 			for (int i = 1; i <= numHospitals - 1; i++) {
 				String hospitalName = "Hospital" + i;
-				
+
 				AgentController hospitalController = mainContainer.createNewAgent(hospitalName,
 						Hospital.class.getName(), args);
 				hospitalController.start();
@@ -61,8 +68,9 @@ public class Main  {
 			}
 
 			String specialHospitalName = "SpecialHospital";
-			Object[] specialArgs = new Object[] { true, this }; // Pass 'true' as an argument to identify it as the special
-															// hospital
+			Object[] specialArgs = new Object[] { true, this }; // Pass 'true' as an argument to identify it as the
+																// special
+			// hospital
 			AgentController specialHospitalController = mainContainer.createNewAgent(specialHospitalName,
 					Hospital.class.getName(), specialArgs);
 			specialHospitalController.start();
@@ -72,8 +80,10 @@ public class Main  {
 			int numZones = 15;
 			List<Double> proportions = Arrays.asList(0.01, 0.04, 0.09, 0.04, 0.01, 0.03, 0.03, 0.01, 0.03, 0.15, 0.08,
 					0.1, 0.22, 0.12, 0.04);
-			//Lambdas is the number of patients 
-			List<Integer> lambdas = Arrays.asList(0,0,0,0, 0, 0, 40, 42, 51, 64, 74, 84, 86, 86, 86, 83 ,75 ,72, 62, 59 ,53 ,49 ,45 ,41, 34 ,30 ,27 ,26 ,25 ,23 ,22 ,21 ,22 ,23 ,20 ,17 ,17 ,16 ,14 ,12 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,8 ,7, 6 ,6 ,6 ,6 ,5, 5 ,5 ,5 ,5,5);
+			// Lambdas is the number of patients
+			List<Integer> lambdas = Arrays.asList(0, 0, 0, 0, 0, 0, 40, 42, 51, 64, 74, 84, 86, 86, 86, 83, 75, 72, 62,
+					59, 53, 49, 45, 41, 34, 30, 27, 26, 25, 23, 22, 21, 22, 23, 20, 17, 17, 16, 14, 12, 9, 9, 9, 9, 9,
+					9, 9, 9, 8, 7, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5);
 			int[][] costMatrix = {
 					// Zone 1
 					{ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 },
@@ -124,60 +134,52 @@ public class Main  {
 		List<Zone> zones = generateZones(proportions, numZones, hospitalNames, costMatrix);
 
 		System.out.println("Simulation started.");
-		int day=0;
+		int day = 0;
 		for (int lambda : lambdas) {
-         day++;
+			day++;
 			if (lambda > 0) {
 				PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
 				final int randomNumber = poissonDistribution.sample();
-				System.out.println("WE ARE IN THE DAY  "+day);
+				System.out.println("WE ARE IN THE DAY  " + day);
 				System.out.println("Number of patient coming :   _____________  " + randomNumber);
 				PatientTreatment.getInstance(this).generate(randomNumber, patientContainer, zones);
 
 				// hospitalTreating count of hospitals that finished the treatment
-				if (PatientTreatment.getInstance(this).getPatientReceivers()
-						.size() <= this.numHospitals) {
-					synchronized(this) {
+				if (PatientTreatment.getInstance(this).getPatientReceivers().size() <= this.numHospitals) {
+					synchronized (this) {
 						try {
-						 
-								this.wait();
-							
-						} 
-						 catch (InterruptedException e) {
+
+							this.wait();
+
+						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
 					}
 
 				}
 
-				
 				Hospital.numAdmissions = 0;
 
 			} else {
 				System.out.println("no patients coming");
 			}
 		}
-		
+
 		// Terminate the agents and the JADE platform
-		
-		PatientTreatment.getInstance(this).stopAllPatientReceiverTreatment();
-		/**for (String hospitalName : hospitalNames) {
-				try {
-					mainContainer.getAgent(hospitalName).kill();
-					
-			} catch (StaleProxyException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ControllerException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}**/
+
+		// PatientTreatment.getInstance(this).stopAllPatientReceiverTreatment();
+		/**
+		 * for (String hospitalName : hospitalNames) { try {
+		 * mainContainer.getAgent(hospitalName).kill();
+		 * 
+		 * } catch (StaleProxyException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); } catch (ControllerException e) { // TODO Auto-generated
+		 * catch block e.printStackTrace(); } }
+		 **/
 
 		runtime.shutDown();
-		
+
 		System.out.println("Simulation terminated.");
-		
 
 	}
 
@@ -187,7 +189,7 @@ public class Main  {
 
 	}
 
-	private  List<Zone> generateZones(List<Double> proportions, int numZones, List<String> hospitalNames,
+	List<Zone> generateZones(List<Double> proportions, int numZones, List<String> hospitalNames,
 			int[][] costMatrix) {
 		List<Zone> zones = new ArrayList<>();
 
@@ -223,7 +225,7 @@ public class Main  {
 
 		return zones;
 	}
-	
+
 	public int getNumbHospital() {
 		return this.numHospitals;
 	}

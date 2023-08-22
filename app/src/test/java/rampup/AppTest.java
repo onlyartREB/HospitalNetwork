@@ -6,9 +6,44 @@ package rampup;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 class AppTest {
     @Test void appHasAGreeting() {
         App classUnderTest = new App();
         assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
     }
+    @Test
+    public void testGetNumbHospital() {
+        Main main = new Main(5); // Adjust the number of hospitals
+        assertEquals(5, main.getNumbHospital());
+
+    }
+    public void testGenerateZones() {
+        Main main = new Main(3); // Adjust the number of hospitals
+        List<Double> proportions = Arrays.asList(0.1, 0.2, 0.3);
+        int numZones = proportions.size();
+        List<String> hospitalNames = Arrays.asList("Hospital1", "Hospital2", "Hospital3");
+        int[][] costMatrix = {
+            { 3, 5, 2 },
+            { 7, 4, 6 },
+            { 1, 9, 8 }
+        };
+
+        List<Zone> zones = main.generateZones(proportions, numZones, hospitalNames, costMatrix);
+
+        assertEquals(numZones, zones.size());
+
+        // Test properties of individual zones
+        assertEquals(1, zones.get(0).getZoneIndex());
+        assertEquals(0.1, zones.get(0).getProportionOfPatients(), 0.001);
+        assertEquals("Hospital1", zones.get(0).getHospitals().get(0).getName());
+        assertEquals(3, zones.get(0).getHospitals().get(0).getCost());
+        // Add more assertions for other zones
+    }
+
+
+
+
 }

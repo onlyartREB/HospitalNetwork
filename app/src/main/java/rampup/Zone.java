@@ -29,4 +29,6 @@ public class Zone {
     public void addHospital(String name, int cost) {
         hospitals.add(new HospitalData(name, cost));
     }
+
+
 }
