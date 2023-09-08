@@ -7,9 +7,11 @@ public class HospitalPerformanceEvaluator {
         double weightnumRejection = 0.25;
 
         double normalizedBedOccupancy = bedOccupancyRate / 100.0;
+        
+        double normalizednumRejection = numRejection / 100.0;
 
         double score = (weightBedOccupancyRate * normalizedBedOccupancy) +
-                       (weightnumRejection * numRejection);
+                       (weightnumRejection * normalizednumRejection);
 
         return score;
     }

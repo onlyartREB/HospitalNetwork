@@ -12,7 +12,13 @@ public class HospitalCapacityAdjuster {
         if (performanceScore < lowerThreshold) {
             capacity = (int) (capacity * decreaseFactor);
         } else if (performanceScore > upperThreshold) {
-            capacity = (int) (capacity * increaseFactor);
+            if (capacity < 10) {
+                // Double the capacity if it's under 10
+                capacity *= 2;
+            } else {
+                // Increase the capacity by the specified factor
+                capacity = (int) (capacity * increaseFactor);
+            }
         }
 
         return capacity;

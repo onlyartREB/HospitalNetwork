@@ -123,7 +123,7 @@ public class PatientTreatment {
 			haveFinished = haveFinished& this.patientReceivers.get(patientReceiver);
 		}
 		
-		return haveFinished;
+		return haveFinished; 
 	}
 	
 	public void resetPatientReceiverTreatment() {

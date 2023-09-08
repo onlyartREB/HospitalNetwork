@@ -26,7 +26,7 @@ public class Zone {
         return hospitals;
     }
 
-    public void addHospital(String name, int cost) {
+    public void addHospitalTarget(String name, int cost) {
         hospitals.add(new HospitalData(name, cost));
     }
 

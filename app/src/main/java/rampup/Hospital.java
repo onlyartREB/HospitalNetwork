@@ -7,22 +7,22 @@ import jade.lang.acl.ACLMessage;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
-
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 public class Hospital extends Agent {
 
-	private int capacity = 5; // Maximum number of patients the hospital can handle
-	private int activePatients = 0; // Number of currently active patients
+	private int capacity = 4; // Maximum number of patients the hospital can handle
 	private boolean isSpecialHospital = false; // Flag to identify the special hospital
 	private List<PatientData> patientList; // List to store the admitted patients
 	private int bedOccupancyRate;
 	private double performanceScore;
-	private int numRejection = 0;
-	public static int numAdmissions = 0;
+	private int numRejections = 0;
+	public  int numAdmissions = 0;
+	public int numRejectionsRate=0;
 	public boolean allAdmit = false;
 	private Main mainThread;
-
+	private int currentDay = 0; // Initialize the day counter
+    public static int totalRejection;
 	/**
 	 * Extract main thread from passed arguments
 	 * 
@@ -56,35 +56,40 @@ public class Hospital extends Agent {
 	}
 
 	protected void setup() {
+
 		safePrintln("Hospital: " + getLocalName());
 		Object[] args = getArguments();
 		Main mainThread = extractMainThreadFrmArgs(args);
+
 		Boolean isSpecialHospital = extractIsSpecialHospitalFrmArgs(args);
 		if (isSpecialHospital) {
 			this.capacity = 10000; // Set a higher capacity for the special hospital
 		}
 
-		patientList = new ArrayList<>();
 
-		addBehaviour(new PatientReceiver(this, 1, this, mainThread, this.capacity));
+				
+		
+
+		patientList = new ArrayList<>();
+		addBehaviour(new PatientReceiver(this, 1, this, mainThread));
 
 	}
 
 	public class PatientReceiver extends TickerBehaviour {
 
-		private int capacity = 0;
 		private Main mainThread;
 		private Hospital hospital;
 		private boolean isFirstTreatment = true;
+		HospitalDataExcelHandler excelhandler = new HospitalDataExcelHandler(getLocalName() + "_data.xls");
+
 
 		public Hospital getHospital() {
 			return hospital;
 		}
 
-		public PatientReceiver(Agent a, long period, Hospital hospital, Main mainThread, int capacity) {
+		public PatientReceiver(Agent a, long period, Hospital hospital, Main mainThread) {
 			super(a, period);
 			this.mainThread = mainThread;
-			this.capacity = capacity;
 			this.hospital = hospital;
 			this.isFirstTreatment = true;
 			PatientTreatment.getInstance(this.mainThread).addNewPatientReceiver(this);
@@ -115,7 +120,10 @@ public class Hospital extends Agent {
 					}
 				}
 				this.isFirstTreatment = false;
+				currentDay++;
+
 				while (PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0) {
+
 					ACLMessage message = receive();
 					if (message != null) {
 						String patientAgentName = message.getContent();
@@ -152,9 +160,15 @@ public class Hospital extends Agent {
 							send(reply);
 							safePrintln(
 									"Patient " + message.getContent() + " rejected by " + getLocalName() + "*********");
-							numRejection++;
-							safePrintln("Number of remaining patients "
-									+ PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount());
+							synchronized (Hospital.class) {
+								if ((PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount() > 0)) {
+									numRejections++;
+									totalRejection+=numRejections;
+									;
+								}
+
+								safePrintln("Number of rejections : " + numRejections);
+							}
 
 						}
 					}
@@ -164,8 +178,10 @@ public class Hospital extends Agent {
 				synchronized (this) {
 					try {
 						treatPatientAndFinishTreatment();
-						checkCapacity();
-						this.wait();
+				        excelhandler.addHospitalData(currentDay, numAdmissions, numRejections, bedOccupancyRate, performanceScore, capacity, patientList.size());
+				        numAdmissions=0;
+				        numRejections=0;
+				        this.wait();
 
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
@@ -181,13 +197,10 @@ public class Hospital extends Agent {
 
 			treatPatients();
 			safePrintln(this.getHospital().getLocalName() + " are treating patient");
-			// checkCapacity();
+			checkCapacity();
 			synchronized (PatientTreatment.getInstance(this.mainThread)) {
 				safePrintln(this.getHospital().getLocalName() + " finished treatment ");
 				PatientTreatment.getInstance().addFinishedPatientReceiver(this);
-
-				safePrintln("Number of remaining patients "
-						+ PatientTreatment.getInstance(this.mainThread).getWaitingPatientCount());
 
 			}
 
@@ -195,8 +208,6 @@ public class Hospital extends Agent {
 
 	}
 
-	
-	
 	void treatPatients() {
 
 		safePrintln(
@@ -230,9 +241,8 @@ public class Hospital extends Agent {
 
 	private void checkCapacity() {
 		updateBedOccupancyRate();
-		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, numRejection);
-		// safePrintln("Performance Score of " + getLocalName() + " : " +
-		// performanceScore);
+		updatenumRejection();
+		performanceScore = HospitalPerformanceEvaluator.evaluatePerformance(bedOccupancyRate, numRejectionsRate);
 		safePrintln("current capacity of " + getLocalName() + " : " + capacity);
 		adjustCapacity();
 
@@ -240,17 +250,17 @@ public class Hospital extends Agent {
 
 	private void updatenumRejection() {
 		try {
-			numRejection = (activePatients * 100) / capacity;
+			numRejectionsRate = (numRejections * 100) / capacity;
 
 		} catch (Exception e) {
-			numRejection = 0;
+			numRejectionsRate = 0;
 			// TODO: handle exception
 		}
 	}
 
 	private void updateBedOccupancyRate() {
 		try {
-			bedOccupancyRate = (activePatients * 100) / capacity;
+			bedOccupancyRate = (patientList.size() * 100) / capacity;
 
 		} catch (Exception e) {
 			bedOccupancyRate = 0;
@@ -308,8 +318,5 @@ public class Hospital extends Agent {
 			System.out.println(s);
 		}
 	}
-	
-	
 
-	
 }

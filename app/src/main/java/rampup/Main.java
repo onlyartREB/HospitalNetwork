@@ -13,6 +13,7 @@ import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -27,6 +28,7 @@ import jade.util.leap.Properties;
 public class Main {
 
 	private int numHospitals;
+	public HospitalDataExcelHandler excelHandler;
 
 	public Main(int numHospitals) {
 		this.numHospitals = numHospitals;
@@ -37,7 +39,6 @@ public class Main {
 
 		// Get the JADE runtime instance
 		Runtime runtime = Runtime.instance();
-		Profile guiProfile = new ProfileImpl();
 
 		// Create a profile with the desired settings
 		Profile profile = new ProfileImpl();
@@ -65,6 +66,7 @@ public class Main {
 						Hospital.class.getName(), args);
 				hospitalController.start();
 				hospitalNames.add(hospitalName);
+
 			}
 
 			String specialHospitalName = "SpecialHospital";
@@ -76,6 +78,7 @@ public class Main {
 			specialHospitalController.start();
 			hospitalNames.add(specialHospitalName);
 
+            
 			// INPUT ______________________________________________________________________
 			int numZones = 15;
 			List<Double> proportions = Arrays.asList(0.01, 0.04, 0.09, 0.04, 0.01, 0.03, 0.03, 0.01, 0.03, 0.15, 0.08,
@@ -124,6 +127,8 @@ public class Main {
 			e.printStackTrace();
 		}
 	}
+	
+	
 
 	/**
 	 * Method for generating zone and patiants
@@ -134,6 +139,9 @@ public class Main {
 		List<Zone> zones = generateZones(proportions, numZones, hospitalNames, costMatrix);
 
 		System.out.println("Simulation started.");
+		int sumtotalRejection=0; 
+		//for (int numIteration = 0; numIteration <= 1000; numIteration++) { // 
+        Hospital.totalRejection=0;
 		int day = 0;
 		for (int lambda : lambdas) {
 			day++;
@@ -149,7 +157,7 @@ public class Main {
 					synchronized (this) {
 						try {
 
-							this.wait();
+							this.wait(); 
 
 						} catch (InterruptedException e) {
 							e.printStackTrace();
@@ -158,24 +166,27 @@ public class Main {
 
 				}
 
-				Hospital.numAdmissions = 0;
 
 			} else {
-				System.out.println("no patients coming");
+				System.out.println("no patients coming"); // LAMBDA 0
 			}
 		}
+		//System.out.println("Total rejection is : "+Hospital.totalRejection);
+		sumtotalRejection+=Hospital.totalRejection;
+		//}
+		
+		//System.out.println("mean rejection is : "+sumtotalRejection/1000);
+		
+		
+		// Generating Excel file for ZONES
+		HospitalDataExcelHandler hospitalZoneInfoExcelHandler = new HospitalDataExcelHandler("hospital_zone_info.xls");
+		for (Zone zone : zones) {
+		        hospitalZoneInfoExcelHandler.addZoneInfo(zone.getZoneIndex(), zone.getProportionOfPatients());
+		}
+		
 
-		// Terminate the agents and the JADE platform
 
-		// PatientTreatment.getInstance(this).stopAllPatientReceiverTreatment();
-		/**
-		 * for (String hospitalName : hospitalNames) { try {
-		 * mainContainer.getAgent(hospitalName).kill();
-		 * 
-		 * } catch (StaleProxyException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); } catch (ControllerException e) { // TODO Auto-generated
-		 * catch block e.printStackTrace(); } }
-		 **/
+
 
 		runtime.shutDown();
 
@@ -190,7 +201,7 @@ public class Main {
 	}
 
 	List<Zone> generateZones(List<Double> proportions, int numZones, List<String> hospitalNames,
-			int[][] costMatrix) {
+			int[][] costMatrix) { 
 		List<Zone> zones = new ArrayList<>();
 
 		for (int i = 1; i <= proportions.size(); i++) {
@@ -217,12 +228,13 @@ public class Main {
 
 			// Add the sorted hospitals to the zone
 			for (HospitalData hospital : hospitals) {
-				zone.addHospital(hospital.getName(), hospital.getCost());
+				zone.addHospitalTarget(hospital.getName(), hospital.getCost());
 			}
 
 			zones.add(zone); // Creating Zones and adding to the list
 		}
 
+		
 		return zones;
 	}
 
