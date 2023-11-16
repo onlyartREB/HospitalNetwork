@@ -1,17 +1,9 @@
 .gradle
 build/
-bin/
-.settings
-.DS_Store
-.classpath
-.project
-.metadata
-.idea/
 
 # Avoid ignoring some jar files
 *.jar
 !gradle-wrapper.jar
-!jade.jar
 
 APDescription.txt
 MTPs-Main-Container.txt
